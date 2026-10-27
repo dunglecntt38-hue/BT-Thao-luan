@@ -9,9 +9,12 @@ import {
   Download,
   AlertTriangle,
   HelpCircle,
-  Share2,
+  Maximize2,
+  Minimize2,
   RefreshCw,
-  QrCode as QrIcon
+  QrCode as QrIcon,
+  ShieldAlert,
+  Share2
 } from 'lucide-react';
 
 interface QRCodeModalProps {
@@ -25,29 +28,30 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, sessi
   const [copied, setCopied] = useState(false);
   const [studentUrl, setStudentUrl] = useState('');
   const [activeTab, setActiveTab] = useState<'qr' | 'guide'>('qr');
+  const [isBigQr, setIsBigQr] = useState(false);
 
-  // Pre-configured URLs
-  const devUrl = typeof window !== 'undefined' ? `${window.location.origin}?role=student` : '';
-  const sharedUrl = 'https://ais-pre-vj5kk6c2gip2ty5g62wdpe-10624576112.asia-east1.run.app?role=student';
+  // Default target URL
+  const defaultUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}?role=student`
+    : 'https://ais-dev-vj5kk6c2gip2ty5g62wdpe-10624576112.asia-east1.run.app?role=student';
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Priority: use current origin + ?role=student
-      const initUrl = `${window.location.origin}?role=student`;
-      setStudentUrl(initUrl);
-      generateQR(initUrl);
+      const url = `${window.location.origin}?role=student`;
+      setStudentUrl(url);
+      generateQR(url);
     }
   }, [isOpen]);
 
   const generateQR = async (urlToEncode: string) => {
     if (!urlToEncode) return;
     try {
-      // High contrast pure black on pure white with high error correction (H)
-      // and margin 4 (quiet zone) for maximum camera scanning speed and reliability
+      // Use errorCorrectionLevel 'M' (Medium - 15%) which generates MUCH LARGER DOTS
+      // and a cleaner 33x33 matrix that smartphone cameras can read in 0.1s off computer screens!
       const dataUri = await QRCode.toDataURL(urlToEncode, {
-        width: 450,
-        margin: 4,
-        errorCorrectionLevel: 'H',
+        width: 600,
+        margin: 3,
+        errorCorrectionLevel: 'M',
         color: {
           dark: '#000000',
           light: '#ffffff',
@@ -55,7 +59,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, sessi
       });
       setQrDataUrl(dataUri);
     } catch (err) {
-      console.error('Failed to generate high-contrast QR code', err);
+      console.error('Failed to generate QR code', err);
     }
   };
 
@@ -69,7 +73,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, sessi
   const handleCopy = () => {
     navigator.clipboard.writeText(studentUrl);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    setTimeout(() => setCopied(false), 3000);
   };
 
   const handleDownloadQr = () => {
@@ -82,9 +86,42 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, sessi
     document.body.removeChild(a);
   };
 
+  // Fullscreen big QR mode
+  if (isBigQr) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-6 select-none animate-in fade-in">
+        <button
+          onClick={() => setIsBigQr(false)}
+          className="absolute top-6 right-6 p-3 bg-white/20 hover:bg-white/30 text-white rounded-2xl transition flex items-center gap-2 font-bold text-sm"
+        >
+          <Minimize2 className="w-5 h-5" /> Thu nhỏ
+        </button>
+
+        <div className="bg-white p-6 rounded-3xl shadow-2xl text-center max-w-lg w-full">
+          <h2 className="text-xl font-black text-slate-900 mb-2">
+            QUÉT MÃ THAM GIA THẢO LUẬN
+          </h2>
+          <p className="text-xs text-slate-500 mb-4 font-semibold">
+            Dùng Camera điện thoại hoặc Zalo để quét
+          </p>
+
+          <img
+            src={qrDataUrl}
+            alt="Mã QR"
+            className="w-full max-w-[380px] h-auto mx-auto border-4 border-slate-900 rounded-2xl"
+          />
+
+          <div className="mt-4 p-3 bg-slate-100 rounded-xl text-xs font-mono text-slate-700 break-all select-all">
+            {studentUrl}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-xl w-full my-6 overflow-hidden shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[95vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-white rounded-3xl max-w-2xl w-full my-6 overflow-hidden shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[95vh]">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white p-5 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
@@ -92,9 +129,11 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, sessi
               <QrIcon className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-bold text-lg leading-snug">Mã QR Tham Gia Thảo Luận</h3>
+              <h3 className="font-extrabold text-lg leading-snug">
+                Mã QR Tham Gia Thảo Luận Cho Học Sinh
+              </h3>
               <p className="text-xs text-blue-100">
-                Chuẩn tương phản cao (đen/trắng) – Học sinh quét bằng Camera hoặc Zalo
+                THPT Đinh Tiên Hoàng • Môn Tin học 10 • GV: Lê Thị Dung
               </p>
             </div>
           </div>
@@ -111,198 +150,211 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, sessi
         <div className="flex border-b border-slate-200 bg-slate-50 px-6 pt-2 shrink-0">
           <button
             onClick={() => setActiveTab('qr')}
-            className={`py-2.5 px-4 text-xs font-bold border-b-2 transition ${
+            className={`py-3 px-5 text-xs font-extrabold border-b-2 transition ${
               activeTab === 'qr'
-                ? 'border-blue-600 text-blue-700 bg-white rounded-t-lg'
+                ? 'border-blue-600 text-blue-700 bg-white rounded-t-xl shadow-xs'
                 : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
-            Mã QR & Đường Dẫn
+            1. Mã QR & Liên Kết
           </button>
           <button
             onClick={() => setActiveTab('guide')}
-            className={`py-2.5 px-4 text-xs font-bold border-b-2 transition flex items-center gap-1.5 ${
+            className={`py-3 px-5 text-xs font-extrabold border-b-2 transition flex items-center gap-1.5 ${
               activeTab === 'guide'
-                ? 'border-indigo-600 text-indigo-700 bg-white rounded-t-lg'
+                ? 'border-indigo-600 text-indigo-700 bg-white rounded-t-xl shadow-xs'
                 : 'border-transparent text-slate-600 hover:text-indigo-700'
             }`}
           >
-            <HelpCircle className="w-3.5 h-3.5" />
-            Hướng Dẫn Học Sinh Quét Mã
+            <ShieldAlert className="w-4 h-4 text-amber-500" />
+            2. Xử Lý Khi Điện Thoại Không Quét Được
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="p-6 overflow-y-auto space-y-5 flex-1 bg-slate-50/50">
+        {/* Content Area */}
+        <div className="p-6 overflow-y-auto space-y-5 flex-1 bg-slate-50/60">
           {activeTab === 'qr' ? (
             <>
-              {/* QR Image Box */}
-              <div className="text-center">
-                <div className="bg-white border-2 border-slate-300 p-3 rounded-2xl inline-block shadow-md">
-                  {qrDataUrl ? (
-                    <img
-                      src={qrDataUrl}
-                      alt="Mã QR Phòng Thảo Luận"
-                      className="w-64 h-64 sm:w-72 sm:h-72 mx-auto rounded-lg select-none"
-                    />
-                  ) : (
-                    <div className="w-64 h-64 flex items-center justify-center text-slate-400">
-                      Đang tạo mã QR...
-                    </div>
-                  )}
+              {/* QR Code Presentation Box */}
+              <div className="flex flex-col sm:flex-row items-center gap-6 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <div className="shrink-0 text-center">
+                  <div className="bg-white border-4 border-slate-900 p-2 rounded-2xl inline-block shadow-md">
+                    {qrDataUrl ? (
+                      <img
+                        src={qrDataUrl}
+                        alt="QR Code"
+                        className="w-56 h-56 sm:w-64 sm:h-64 object-contain select-none"
+                      />
+                    ) : (
+                      <div className="w-56 h-56 flex items-center justify-center text-slate-400">
+                        Đang tạo mã QR...
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-2 flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => setIsBigQr(true)}
+                      className="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200"
+                    >
+                      <Maximize2 className="w-3.5 h-3.5" /> Phóng to toàn màn hình
+                    </button>
+                  </div>
                 </div>
 
-                <div className="mt-2 text-xs font-bold text-slate-700">
-                  Môn Tin học 10 • THPT Đinh Tiên Hoàng
+                <div className="space-y-3 flex-1 text-center sm:text-left">
+                  <div className="space-y-1">
+                    <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">
+                      Hướng dẫn quét cho học sinh:
+                    </span>
+                    <h4 className="text-base font-extrabold text-slate-900">
+                      Cách 1: Mở Zalo ➔ Bấm nút Quét QR góc trên
+                    </h4>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Zalo quét mã QR trên màn hình máy tính/máy chiếu rất nhạy và mở link ngay lập tức.
+                    </p>
+                  </div>
+
+                  <div className="space-y-1 pt-1">
+                    <h4 className="text-base font-extrabold text-slate-900">
+                      Cách 2: Gửi link vào Zalo nhóm lớp
+                    </h4>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Cô bấm nút màu xanh bên dưới để sao chép link và dán vào nhóm Zalo lớp để các bạn chỉ cần bấm vào là làm bài ngay.
+                    </p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="pt-2 flex flex-wrap gap-2 justify-center sm:justify-start">
+                    <button
+                      onClick={handleCopy}
+                      className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
+                    >
+                      {copied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
+                      <span>{copied ? 'ĐÃ SAO CHÉP LINK!' : 'SAO CHÉP LINK GỬI ZALO LỚP'}</span>
+                    </button>
+
+                    <button
+                      onClick={handleDownloadQr}
+                      className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition"
+                      title="Tải ảnh PNG mã QR về máy"
+                    >
+                      <Download className="w-4 h-4 text-blue-300" />
+                      <span>Tải ảnh PNG</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* Action Buttons: Download & Copy */}
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                <button
-                  onClick={handleDownloadQr}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition shadow-sm"
-                  title="Tải ảnh PNG mã QR về máy để chèn vào slide PowerPoint hoặc in giấy"
-                >
-                  <Download className="w-4 h-4 text-blue-300" />
-                  <span>Tải ảnh mã QR (PNG)</span>
-                </button>
-
-                <button
-                  onClick={handleCopy}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
-                  title="Sao chép link để gửi vào nhóm Zalo lớp học"
-                >
-                  {copied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
-                  <span>{copied ? 'Đã sao chép link!' : 'Sao chép link gửi Zalo lớp'}</span>
-                </button>
-              </div>
-
-              {/* Editable URL Box */}
-              <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
-                  Đường dẫn đang mã hóa trong QR:
-                </label>
+              {/* Direct Link Box */}
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 uppercase">
+                  <span>Đường dẫn truy cập cho học sinh:</span>
+                  <span className="text-slate-400 font-normal">Cô có thể chỉnh sửa link nếu cần</span>
+                </div>
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
                     value={studentUrl}
                     onChange={(e) => handleUrlChange(e.target.value)}
-                    placeholder="https://..."
-                    className="flex-1 text-xs p-2.5 border border-slate-300 rounded-lg font-mono bg-slate-50 focus:bg-white focus:ring-1 focus:ring-blue-500"
+                    className="flex-1 text-xs p-3 border border-slate-300 rounded-xl font-mono bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 select-all"
                   />
                   <button
-                    onClick={() => handleUrlChange(devUrl)}
-                    className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg font-semibold shrink-0"
-                    title="Đặt lại đường link mặc định của web"
+                    onClick={() => handleUrlChange(defaultUrl)}
+                    className="p-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl"
+                    title="Đặt lại link mặc định"
                   >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <div className="flex flex-wrap gap-2 pt-1 text-[11px]">
-                  <span className="text-slate-500 self-center">Chọn nhanh:</span>
-                  <button
-                    onClick={() => handleUrlChange(devUrl)}
-                    className="text-blue-600 hover:underline bg-blue-50 px-2 py-0.5 rounded border border-blue-200"
-                  >
-                    Link máy chủ hiện tại
-                  </button>
-                  <button
-                    onClick={() => handleUrlChange(sharedUrl)}
-                    className="text-indigo-600 hover:underline bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200"
-                  >
-                    Link Shared App công khai
+                    <RefreshCw className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
-              {/* Security / Network note */}
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-xs text-amber-900 space-y-1">
-                <div className="font-bold flex items-center gap-1.5 text-amber-950">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                  Lưu ý khi học sinh quét mã bằng điện thoại:
+              {/* Notice why phone camera might say access denied */}
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 space-y-2">
+                <div className="font-bold flex items-center gap-2 text-amber-950 text-sm">
+                  <AlertTriangle className="w-4.5 h-4.5 text-amber-600 shrink-0" />
+                  Nếu điện thoại của cô/học sinh báo "Lỗi truy cập" hoặc "Trang trắng"?
                 </div>
                 <p className="leading-relaxed">
-                  • <strong>Cách quét nhanh nhất:</strong> Mở ứng dụng <strong>Zalo</strong> trên điện thoại ➔ Bấm vào biểu tượng <strong>[Quét QR]</strong> ở góc trên bên phải màn hình để quét mã này.
+                  Vì ứng dụng đang chạy trong môi trường phát triển của Google AI Studio (được bảo mật riêng cho tài khoản Google của cô: <strong>{sessionTitle}</strong>).
                 </p>
-                <p className="leading-relaxed">
-                  • <strong>Nếu điện thoại báo lỗi kết nối hoặc yêu cầu đăng nhập Google:</strong> Cô có thể bấm nút <strong>"Sao chép link gửi Zalo lớp"</strong> ở trên và dán trực tiếp vào nhóm Zalo của lớp để các em bấm vào làm bài ngay lập tức.
+                <p className="font-semibold text-amber-950">
+                  👉 Vui lòng bấm sang tab <strong>"2. Xử Lý Khi Điện Thoại Không Quét Được"</strong> ở trên để xem 3 cách mở nhanh chỉ mất 30 giây!
                 </p>
               </div>
             </>
           ) : (
-            /* GUIDE TAB */
-            <div className="space-y-4 text-xs text-slate-700">
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
-                <h4 className="font-bold text-blue-900 text-sm flex items-center gap-2">
-                  <Smartphone className="w-4 h-4 text-blue-600" />
-                  3 Cách Cho Học Sinh Vào Phòng Thảo Luận:
+            /* TROUBLESHOOTING / GUIDE TAB */
+            <div className="space-y-4 text-xs">
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <h4 className="font-black text-slate-900 text-sm uppercase tracking-wide flex items-center gap-2">
+                  <ShieldAlert className="w-5 h-5 text-indigo-600" />
+                  Tại sao điện thoại không vào được và cách xử lý:
                 </h4>
-                <div className="space-y-3 pt-2">
-                  <div className="bg-white p-3 rounded-lg border border-blue-100 shadow-2xs">
-                    <p className="font-bold text-slate-900 text-xs mb-1">
-                      Cách 1: Quét bằng ứng dụng ZALO (Khuyên dùng nhất cho học sinh Việt Nam)
-                    </p>
-                    <p className="text-slate-600">
-                      Mở ứng dụng Zalo trên điện thoại ➔ Ở tab Tin nhắn, bấm biểu tượng <strong>Quét mã QR</strong> ở góc trên cùng bên phải màn hình ➔ Hướng camera về mã QR trên máy chiếu ➔ Bấm <strong>Mở liên kết</strong>.
-                    </p>
-                  </div>
 
-                  <div className="bg-white p-3 rounded-lg border border-blue-100 shadow-2xs">
-                    <p className="font-bold text-slate-900 text-xs mb-1">
-                      Cách 2: Quét bằng Camera mặc định của điện thoại
-                    </p>
-                    <p className="text-slate-600">
-                      Mở ứng dụng Máy ảnh (Camera) trên iPhone hoặc điện thoại Android ➔ Hướng về mã QR ➔ Bấm vào thông báo liên kết màu vàng xuất hiện trên màn hình.
-                    </p>
+                {/* Solution 1 */}
+                <div className="bg-blue-50/70 p-4 rounded-xl border border-blue-200 space-y-1.5">
+                  <div className="font-bold text-blue-900 text-sm">
+                    Cách 1: Mở khóa quyền công khai (Share App) trên Google AI Studio
                   </div>
-
-                  <div className="bg-white p-3 rounded-lg border border-blue-100 shadow-2xs">
-                    <p className="font-bold text-slate-900 text-xs mb-1">
-                      Cách 3: Gửi trực tiếp link vào nhóm chat của lớp
-                    </p>
-                    <p className="text-slate-600">
-                      Cô bấm nút <strong>"Sao chép link gửi Zalo lớp"</strong> ➔ Dán link vào nhóm Zalo hoặc Messenger của lớp. Học sinh chỉ cần chạm vào link là vào ngay trang thảo luận.
-                    </p>
-                  </div>
+                  <p className="text-slate-700 leading-relaxed">
+                    1. Ở góc trên bên phải màn hình làm việc của Google AI Studio (trên thanh menu trên cùng), cô sẽ thấy nút <strong>"Share" (Chia sẻ)</strong> hoặc nút <strong>"Deploy"</strong>.
+                  </p>
+                  <p className="text-slate-700 leading-relaxed">
+                    2. Bấm vào nút <strong>"Share"</strong> và bật chế độ chia sẻ công khai. Khi đó, bất kỳ điện thoại nào quét mã QR đều vào được mà không bị Google chặn cookie.
+                  </p>
                 </div>
-              </div>
 
-              {/* Troubleshooting */}
-              <div className="bg-slate-100 border border-slate-300 rounded-xl p-4 space-y-2">
-                <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wide">
-                  Xử lý sự cố thường gặp:
-                </h4>
-                <ul className="list-disc pl-5 space-y-1.5 text-slate-600">
-                  <li>
-                    <strong>Màn hình máy chiếu bị mờ/lóa sáng:</strong> Bấm nút <strong>"Tải ảnh mã QR (PNG)"</strong> để chèn ảnh mã QR vào slide PowerPoint phóng to toàn màn hình với độ nét tối đa.
-                  </li>
-                  <li>
-                    <strong>Học sinh không có mạng 4G/Wifi:</strong> Mỗi nhóm chỉ cần 01 bạn đại diện có điện thoại kết nối mạng để nhập câu trả lời cho cả nhóm.
-                  </li>
-                  <li>
-                    <strong>Điện thoại báo không mở được:</strong> Yêu cầu học sinh mở bằng trình duyệt <strong>Google Chrome</strong> hoặc <strong>Safari</strong>.
-                  </li>
-                </ul>
+                {/* Solution 2 */}
+                <div className="bg-emerald-50/70 p-4 rounded-xl border border-emerald-200 space-y-1.5">
+                  <div className="font-bold text-emerald-900 text-sm">
+                    Cách 2: Quét bằng điện thoại có đăng nhập tài khoản Google của cô
+                  </div>
+                  <p className="text-slate-700 leading-relaxed">
+                    Nếu cô đang tự dùng điện thoại của mình để thử nghiệm:
+                  </p>
+                  <p className="text-slate-700 leading-relaxed">
+                    • Mở trình duyệt <strong>Chrome</strong> trên điện thoại ➔ Đảm bảo đã đăng nhập cùng tài khoản Gmail của cô.
+                  </p>
+                  <p className="text-slate-700 leading-relaxed">
+                    • Quét lại mã QR hoặc dán link vào Chrome trên điện thoại để mở thẳng trang làm bài.
+                  </p>
+                </div>
+
+                {/* Solution 3 */}
+                <div className="bg-indigo-50/70 p-4 rounded-xl border border-indigo-200 space-y-1.5">
+                  <div className="font-bold text-indigo-900 text-sm">
+                    Cách 3: Thử nghiệm ngay trên máy tính của cô (2 màn hình song song)
+                  </div>
+                  <p className="text-slate-700 leading-relaxed">
+                    Để cô kiểm tra hoạt động nộp bài và đồng bộ thời gian thực ngay lúc này:
+                  </p>
+                  <p className="text-slate-700 leading-relaxed">
+                    • Bấm vào nút <strong>"Mở giao diện học sinh trong tab mới"</strong> bên dưới.
+                  </p>
+                  <p className="text-slate-700 leading-relaxed">
+                    • Màn hình học sinh sẽ mở ra ở tab mới, cô chọn <strong>Nhóm 1</strong>, nhập bài làm và bấm <strong>GỬI BÀI</strong>. Tab giáo viên sẽ lập tức nhảy số và đổi màu xanh ngay trước mắt cô!
+                  </p>
+                </div>
               </div>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-slate-100 border-t border-slate-200 flex items-center justify-between shrink-0">
+        <div className="p-4 bg-slate-100 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
           <a
             href={studentUrl}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-semibold px-2 py-1"
+            className="flex items-center gap-1.5 text-xs text-blue-700 hover:text-blue-900 font-bold bg-blue-100/70 hover:bg-blue-200 px-3.5 py-2 rounded-xl transition"
           >
-            <ExternalLink className="w-4 h-4" /> Mở thử trong tab mới
+            <ExternalLink className="w-4 h-4" /> Mở giao diện học sinh trong tab mới (Để cô thử nghiệm)
           </a>
+
           <button
             onClick={onClose}
-            className="bg-slate-800 text-white hover:bg-slate-900 font-bold text-xs px-5 py-2.5 rounded-xl transition"
+            className="bg-slate-900 text-white hover:bg-black font-bold text-xs px-6 py-2.5 rounded-xl transition"
           >
             Đóng cửa sổ
           </button>
