@@ -5,6 +5,12 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { DEFAULT_QUESTIONS, SessionData, GroupData } from './src/types.ts';
+import {
+  getSessionFromDb,
+  saveInitialSessionToDb,
+  updateGroupInDb,
+  updateSessionSettingsInDb
+} from './src/db/discussion.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,7 +47,7 @@ function generateInitialGroups(): GroupData[] {
         strengths: '',
         areasToImprove: '',
         nextSteps: '',
-        isPublished: true, // Mặc định cho phép học sinh xem khi giáo viên lưu nhận xét
+        isPublished: true,
         updatedAt: null,
       },
     });
@@ -59,7 +65,7 @@ function getDefaultSession(): SessionData {
     situationContext: '',
     isOpen: true,
     allowEditAfterSubmit: true,
-    teacherPin: '1234', // Mã PIN quản trị mặc định cho giáo viên
+    teacherPin: '1234',
     questions: [...DEFAULT_QUESTIONS],
     groups: generateInitialGroups(),
     updatedAt: new Date().toISOString(),
@@ -69,7 +75,7 @@ function getDefaultSession(): SessionData {
 // In-memory session state
 let sessionState: SessionData = getDefaultSession();
 
-// Ensure data folder and file
+// Ensure local fallback data directories exist
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
@@ -77,22 +83,17 @@ if (!fs.existsSync(HISTORY_DIR)) {
   fs.mkdirSync(HISTORY_DIR, { recursive: true });
 }
 
+// Load local backup if exists
 if (fs.existsSync(DATA_FILE)) {
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf-8');
     const parsed = JSON.parse(raw);
     if (parsed && Array.isArray(parsed.groups) && parsed.groups.length === 12) {
       sessionState = parsed;
-      // Ensure questions match exact 4 questions if empty
-      if (!sessionState.questions || sessionState.questions.length !== 4) {
-        sessionState.questions = [...DEFAULT_QUESTIONS];
-      }
     }
   } catch (err) {
-    console.error('Error loading existing session data, initializing default:', err);
+    console.error('Error loading fallback session data:', err);
   }
-} else {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(sessionState, null, 2), 'utf-8');
 }
 
 function persistSession() {
@@ -100,7 +101,7 @@ function persistSession() {
   try {
     fs.writeFileSync(DATA_FILE, JSON.stringify(sessionState, null, 2), 'utf-8');
   } catch (err) {
-    console.error('Failed to persist session to disk:', err);
+    console.error('Failed to write local backup file:', err);
   }
   broadcastSession();
 }
@@ -122,6 +123,20 @@ function broadcastSession() {
 async function startServer() {
   const app = express();
   const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
+  // Initialize from PostgreSQL if available
+  try {
+    const dbSession = await getSessionFromDb();
+    if (dbSession && dbSession.groups.length === 12) {
+      sessionState = dbSession;
+      console.log('✅ Loaded session successfully from Cloud SQL PostgreSQL');
+    } else {
+      await saveInitialSessionToDb(sessionState);
+      console.log('✅ Initialized 12 groups in Cloud SQL PostgreSQL');
+    }
+  } catch (err) {
+    console.warn('⚠️ Could not connect to PostgreSQL immediately, using memory cache:', err);
+  }
 
   app.use(express.json({ limit: '10mb' }));
 
@@ -147,7 +162,7 @@ async function startServer() {
     });
   });
 
-  // Keep-alive heartbeat every 15s to keep connections healthy through reverse proxies
+  // Heartbeat ping every 15s
   setInterval(() => {
     for (const client of sseClients) {
       try {
@@ -180,7 +195,6 @@ async function startServer() {
       group.members = members;
     }
 
-    // Update status to in_progress if not yet submitted
     if (group.status === 'not_started') {
       const hasAnyInput = Object.values(group.draftAnswers).some(val => val.trim().length > 0);
       if (hasAnyInput) {
@@ -189,7 +203,10 @@ async function startServer() {
     }
     group.updatedAt = new Date().toISOString();
 
+    // Asynchronously update PostgreSQL and broadcast
+    updateGroupInDb(group).catch(err => console.error('PostgreSQL update error:', err));
     persistSession();
+
     res.json({ success: true, message: 'Đã lưu bản nháp thành công', data: group });
   });
 
@@ -243,7 +260,6 @@ async function startServer() {
     if (members !== undefined) {
       group.members = members;
     }
-    // Set status to submitted (or keep reviewed if teacher already commented)
     if (group.status !== 'reviewed') {
       group.status = 'submitted';
     }
@@ -251,7 +267,10 @@ async function startServer() {
     group.submittedAt = now;
     group.updatedAt = now;
 
+    // Asynchronously update PostgreSQL and broadcast
+    updateGroupInDb(group).catch(err => console.error('PostgreSQL update error:', err));
     persistSession();
+
     res.json({
       success: true,
       message: 'Gửi bài thảo luận thành công! Bài làm đã được cập nhật đến máy chiếu giáo viên.',
@@ -292,7 +311,10 @@ async function startServer() {
       group.status = 'not_started';
     }
 
+    // Asynchronously update PostgreSQL and broadcast
+    updateGroupInDb(group).catch(err => console.error('PostgreSQL update error:', err));
     persistSession();
+
     res.json({ success: true, message: 'Đã lưu nhận xét thành công', data: group });
   });
 
@@ -313,7 +335,10 @@ async function startServer() {
 
     group.status = status;
     group.updatedAt = new Date().toISOString();
+
+    updateGroupInDb(group).catch(err => console.error('PostgreSQL update error:', err));
     persistSession();
+
     res.json({ success: true, data: group });
   });
 
@@ -332,7 +357,9 @@ async function startServer() {
     if (situationContext !== undefined) sessionState.situationContext = situationContext.trim();
     if (teacherPin !== undefined && teacherPin.trim()) sessionState.teacherPin = teacherPin.trim();
 
+    updateSessionSettingsInDb(sessionState).catch(err => console.error('PostgreSQL session update error:', err));
     persistSession();
+
     res.json({ success: true, message: 'Đã cập nhật cài đặt buổi thảo luận', data: sessionState });
   });
 
@@ -360,7 +387,9 @@ async function startServer() {
       teacherPin: sessionState.teacherPin,
     };
 
+    saveInitialSessionToDb(sessionState).catch(err => console.error('PostgreSQL reset error:', err));
     persistSession();
+
     res.json({ success: true, message: 'Đã khởi tạo buổi thảo luận mới thành công!', data: sessionState });
   });
 
@@ -442,7 +471,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Phòng Thảo Luận Số server is listening at http://0.0.0.0:${PORT}`);
+    console.log(`🚀 Phòng Thảo Luận Số server with Cloud SQL PostgreSQL is listening at http://0.0.0.0:${PORT}`);
   });
 }
 

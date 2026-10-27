@@ -18,7 +18,7 @@
     {
       "id": 1,
       "name": "Nhóm 1",
-      "status": "not_started",
+      "status": "in_progress",
       "answers": {
         "q1": "",
         "q2": "",
@@ -26,14 +26,14 @@
         "q4": ""
       },
       "draftAnswers": {
-        "q1": "",
+        "q1": "Câu trả lời nháp câu 1",
         "q2": "",
         "q3": "",
         "q4": ""
       },
       "submittedAt": null,
-      "updatedAt": null,
-      "members": "",
+      "updatedAt": "2026-10-27T02:07:06.091Z",
+      "members": "Học sinh A",
       "feedback": {
         "general": "",
         "strengths": "",
@@ -352,5 +352,5 @@
       }
     }
   ],
-  "updatedAt": "2026-10-27T01:58:15.776Z"
+  "updatedAt": "2026-10-27T02:07:06.091Z"
 }
