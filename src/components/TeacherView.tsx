@@ -140,11 +140,25 @@ export const TeacherView: React.FC<TeacherViewProps> = ({
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={onOpenQrModal}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition shadow-2xs"
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
                 title="Chiếu mã QR cho học sinh quét bằng điện thoại"
               >
-                <QrCode className="w-4 h-4 text-blue-600" />
+                <QrCode className="w-4 h-4" />
                 <span>Mã QR Cho Học Sinh</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const url = `${window.location.origin}?role=student`;
+                  navigator.clipboard.writeText(url);
+                  setNewSubmissionsAlert('📋 Đã sao chép đường link học sinh! Bạn có thể dán vào Zalo lớp.');
+                  setTimeout(() => setNewSubmissionsAlert(null), 4000);
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition"
+                title="Sao chép link trực tiếp gửi Zalo"
+              >
+                <Smartphone className="w-4 h-4 text-blue-600" />
+                <span className="hidden sm:inline">Chép Link Zalo</span>
               </button>
 
               <button
