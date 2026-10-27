@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SessionData, GroupData, DEFAULT_QUESTIONS } from './types.ts';
+import { SessionData, GroupData, DEFAULT_QUESTIONS, createDefaultSession } from './types.ts';
 import { ApiService } from './services/api.ts';
 import { TeacherView } from './components/TeacherView.tsx';
 import { StudentView } from './components/StudentView.tsx';
@@ -9,7 +9,6 @@ import { FeedbackModal } from './components/FeedbackModal.tsx';
 import { QRCodeModal } from './components/QRCodeModal.tsx';
 import { SettingsModal } from './components/SettingsModal.tsx';
 import { PrintReport } from './components/PrintReport.tsx';
-import { Loader2 } from 'lucide-react';
 
 export default function App() {
   const [role, setRole] = useState<'teacher' | 'student'>(() => {
@@ -23,9 +22,24 @@ export default function App() {
     return 'teacher';
   });
 
-  const [session, setSession] = useState<SessionData | null>(null);
+  // Always initialize with default or cached session so the UI renders IMMEDIATELY
+  // and NEVER gets stuck on a dark loading screen.
+  const [session, setSession] = useState<SessionData>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('thpt_cached_session_data');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed && Array.isArray(parsed.groups) && parsed.groups.length === 12) {
+            return parsed;
+          }
+        } catch {}
+      }
+    }
+    return createDefaultSession();
+  });
+
   const [isConnected, setIsConnected] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Modals state
   const [detailGroup, setDetailGroup] = useState<GroupData | null>(null);
@@ -39,50 +53,68 @@ export default function App() {
   useEffect(() => {
     let isMounted = true;
 
-    // Fetch initial
-    ApiService.getSession()
-      .then((data) => {
-        if (isMounted) {
-          setSession(data);
-          setIsLoading(false);
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to load session:', err);
-        if (isMounted) setIsLoading(false);
-      });
+    // Fetch latest session from server
+    const fetchLatest = () => {
+      ApiService.getSession()
+        .then((data) => {
+          if (isMounted && data && Array.isArray(data.groups) && data.groups.length === 12) {
+            setSession(data);
+            setIsConnected(true);
+            try {
+              localStorage.setItem('thpt_cached_session_data', JSON.stringify(data));
+            } catch {}
+          }
+        })
+        .catch((err) => {
+          console.warn('Initial session fetch warning:', err);
+          if (isMounted) setIsConnected(false);
+        });
+    };
+
+    fetchLatest();
 
     // Real-time SSE subscription
-    const unsubscribe = ApiService.subscribeToStream(
-      (newSession) => {
-        if (isMounted) {
-          setSession(newSession);
-          setIsConnected(true);
+    let unsubscribe = () => {};
+    try {
+      unsubscribe = ApiService.subscribeToStream(
+        (newSession) => {
+          if (isMounted && newSession && Array.isArray(newSession.groups) && newSession.groups.length === 12) {
+            setSession(newSession);
+            setIsConnected(true);
+            try {
+              localStorage.setItem('thpt_cached_session_data', JSON.stringify(newSession));
+            } catch {}
 
-          // If detail modal or feedback modal is currently viewing a group, update its reference
-          setDetailGroup((prev) => (prev ? newSession.groups.find((g) => g.id === prev.id) || null : null));
-          setFeedbackGroup((prev) => (prev ? newSession.groups.find((g) => g.id === prev.id) || null : null));
-          setPresentationGroup((prev) => (prev ? newSession.groups.find((g) => g.id === prev.id) || null : null));
+            // If detail modal or feedback modal is currently viewing a group, update its reference
+            setDetailGroup((prev) => (prev ? newSession.groups.find((g) => g.id === prev.id) || null : null));
+            setFeedbackGroup((prev) => (prev ? newSession.groups.find((g) => g.id === prev.id) || null : null));
+            setPresentationGroup((prev) => (prev ? newSession.groups.find((g) => g.id === prev.id) || null : null));
+          }
+        },
+        (connected) => {
+          if (isMounted) setIsConnected(connected);
         }
-      },
-      (connected) => {
-        if (isMounted) setIsConnected(connected);
-      }
-    );
+      );
+    } catch (e) {
+      console.warn('SSE subscription error:', e);
+    }
 
-    // Safety fallback polling every 5s
+    // Safety fallback polling every 4s
     const pollInterval = setInterval(() => {
       ApiService.getSession()
         .then((data) => {
-          if (isMounted) {
+          if (isMounted && data && Array.isArray(data.groups) && data.groups.length === 12) {
             setSession(data);
             setIsConnected(true);
+            try {
+              localStorage.setItem('thpt_cached_session_data', JSON.stringify(data));
+            } catch {}
           }
         })
         .catch(() => {
           if (isMounted) setIsConnected(false);
         });
-    }, 5000);
+    }, 4000);
 
     return () => {
       isMounted = false;
@@ -90,16 +122,6 @@ export default function App() {
       clearInterval(pollInterval);
     };
   }, []);
-
-  if (isLoading || !session) {
-    return (
-      <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6 text-center">
-        <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-        <h2 className="text-xl font-bold">Đang kết nối Phòng Thảo Luận Số...</h2>
-        <p className="text-sm text-slate-400 mt-2">Môn Tin học 10 – THPT Đinh Tiên Hoàng</p>
-      </div>
-    );
-  }
 
   // If in Print Report Mode
   if (isPrintReportOpen) {
@@ -169,13 +191,10 @@ export default function App() {
         teacherPin={session.teacherPin}
         onClose={() => setFeedbackGroup(null)}
         onSuccess={(updatedGroup) => {
-          setSession((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              groups: prev.groups.map((g) => (g.id === updatedGroup.id ? updatedGroup : g)),
-            };
-          });
+          setSession((prev) => ({
+            ...prev,
+            groups: prev.groups.map((g) => (g.id === updatedGroup.id ? updatedGroup : g)),
+          }));
         }}
       />
 

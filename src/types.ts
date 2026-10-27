@@ -50,6 +50,44 @@ export const DEFAULT_QUESTIONS: [string, string, string, string] = [
   "Nếu muốn sử dụng áp phích của An, em nên làm gì?"
 ];
 
+export function createDefaultSession(): SessionData {
+  const groups: GroupData[] = [];
+  for (let i = 1; i <= 12; i++) {
+    groups.push({
+      id: i,
+      name: `Nhóm ${i}`,
+      status: 'not_started',
+      answers: { q1: '', q2: '', q3: '', q4: '' },
+      draftAnswers: { q1: '', q2: '', q3: '', q4: '' },
+      submittedAt: null,
+      updatedAt: null,
+      members: '',
+      feedback: {
+        general: '',
+        strengths: '',
+        areasToImprove: '',
+        nextSteps: '',
+        isPublished: true,
+        updatedAt: null,
+      },
+    });
+  }
+  return {
+    sessionId: 'session_thpt_tin10',
+    sessionTitle: 'Thảo luận: Đạo đức, pháp luật và văn hóa trong môi trường số – Quyền tác giả',
+    schoolName: 'THPT Đinh Tiên Hoàng',
+    teacherName: 'Lê Thị Dung',
+    subjectName: 'Tin học 10',
+    situationContext: '',
+    isOpen: true,
+    allowEditAfterSubmit: true,
+    teacherPin: '1234',
+    questions: [...DEFAULT_QUESTIONS],
+    groups,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 export const STATUS_CONFIG: Record<GroupStatus, { label: string; badgeClass: string; cardClass: string; dotClass: string }> = {
   not_started: {
     label: "Chưa làm",
