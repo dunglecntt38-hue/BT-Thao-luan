@@ -1,0 +1,356 @@
+{
+  "sessionId": "session_1793066279682",
+  "sessionTitle": "Thảo luận: Đạo đức, pháp luật và văn hóa trong môi trường số – Quyền tác giả",
+  "schoolName": "THPT Đinh Tiên Hoàng",
+  "teacherName": "Lê Thị Dung",
+  "subjectName": "Tin học 10",
+  "situationContext": "",
+  "isOpen": true,
+  "allowEditAfterSubmit": true,
+  "teacherPin": "1234",
+  "questions": [
+    "Ai là người trực tiếp sáng tạo ra sản phẩm?",
+    "Việc xóa tên tác giả và đăng lại sản phẩm có phù hợp không? Vì sao?",
+    "Quyền tác giả trong tình huống này liên quan đến những quyền nào?",
+    "Nếu muốn sử dụng áp phích của An, em nên làm gì?"
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "name": "Nhóm 1",
+      "status": "reviewed",
+      "answers": {
+        "q1": "An là người trực tiếp sáng tạo ra sản phẩm áp phích.",
+        "q2": "Không phù hợp, vì vi phạm quyền tác giả và quyền nhân thân của người tạo ra tác phẩm.",
+        "q3": "Liên quan đến quyền nhân thân (được đứng tên tác giả) và quyền tài sản (quyền sử dụng, phân phối).",
+        "q4": "Cần xin phép bạn An và ghi rõ tên tác giả cũng như nguồn khi sử dụng."
+      },
+      "draftAnswers": {
+        "q1": "An là người trực tiếp sáng tạo ra sản phẩm áp phích.",
+        "q2": "Không phù hợp, vì vi phạm quyền tác giả và quyền nhân thân của người tạo ra tác phẩm.",
+        "q3": "Liên quan đến quyền nhân thân (được đứng tên tác giả) và quyền tài sản (quyền sử dụng, phân phối).",
+        "q4": "Cần xin phép bạn An và ghi rõ tên tác giả cũng như nguồn khi sử dụng."
+      },
+      "submittedAt": "2026-10-27T01:58:06.271Z",
+      "updatedAt": "2026-10-27T01:58:06.271Z",
+      "members": "Nguyễn Văn A, Trần Thị B",
+      "feedback": {
+        "general": "Nhóm hoàn thành bài rất tốt, lập luận rõ ràng.",
+        "strengths": "Hiểu đúng khái niệm quyền nhân thân và quyền tài sản.",
+        "areasToImprove": "Có thể bổ sung quy định của luật Sở hữu trí tuệ Việt Nam.",
+        "nextSteps": "Thực hiện đúng quy tắc xin phép tác giả khi làm việc nhóm.",
+        "isPublished": true,
+        "updatedAt": "2026-10-27T01:58:09.797Z"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Nhóm 2",
+      "status": "not_started",
+      "answers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "draftAnswers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "submittedAt": null,
+      "updatedAt": null,
+      "members": "",
+      "feedback": {
+        "general": "",
+        "strengths": "",
+        "areasToImprove": "",
+        "nextSteps": "",
+        "isPublished": true,
+        "updatedAt": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "Nhóm 3",
+      "status": "not_started",
+      "answers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "draftAnswers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "submittedAt": null,
+      "updatedAt": null,
+      "members": "",
+      "feedback": {
+        "general": "",
+        "strengths": "",
+        "areasToImprove": "",
+        "nextSteps": "",
+        "isPublished": true,
+        "updatedAt": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "Nhóm 4",
+      "status": "not_started",
+      "answers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "draftAnswers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "submittedAt": null,
+      "updatedAt": null,
+      "members": "",
+      "feedback": {
+        "general": "",
+        "strengths": "",
+        "areasToImprove": "",
+        "nextSteps": "",
+        "isPublished": true,
+        "updatedAt": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "Nhóm 5",
+      "status": "not_started",
+      "answers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "draftAnswers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "submittedAt": null,
+      "updatedAt": null,
+      "members": "",
+      "feedback": {
+        "general": "",
+        "strengths": "",
+        "areasToImprove": "",
+        "nextSteps": "",
+        "isPublished": true,
+        "updatedAt": null
+      }
+    },
+    {
+      "id": 6,
+      "name": "Nhóm 6",
+      "status": "not_started",
+      "answers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "draftAnswers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "submittedAt": null,
+      "updatedAt": null,
+      "members": "",
+      "feedback": {
+        "general": "",
+        "strengths": "",
+        "areasToImprove": "",
+        "nextSteps": "",
+        "isPublished": true,
+        "updatedAt": null
+      }
+    },
+    {
+      "id": 7,
+      "name": "Nhóm 7",
+      "status": "not_started",
+      "answers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "draftAnswers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "submittedAt": null,
+      "updatedAt": null,
+      "members": "",
+      "feedback": {
+        "general": "",
+        "strengths": "",
+        "areasToImprove": "",
+        "nextSteps": "",
+        "isPublished": true,
+        "updatedAt": null
+      }
+    },
+    {
+      "id": 8,
+      "name": "Nhóm 8",
+      "status": "not_started",
+      "answers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "draftAnswers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "submittedAt": null,
+      "updatedAt": null,
+      "members": "",
+      "feedback": {
+        "general": "",
+        "strengths": "",
+        "areasToImprove": "",
+        "nextSteps": "",
+        "isPublished": true,
+        "updatedAt": null
+      }
+    },
+    {
+      "id": 9,
+      "name": "Nhóm 9",
+      "status": "not_started",
+      "answers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "draftAnswers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "submittedAt": null,
+      "updatedAt": null,
+      "members": "",
+      "feedback": {
+        "general": "",
+        "strengths": "",
+        "areasToImprove": "",
+        "nextSteps": "",
+        "isPublished": true,
+        "updatedAt": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "Nhóm 10",
+      "status": "not_started",
+      "answers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "draftAnswers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "submittedAt": null,
+      "updatedAt": null,
+      "members": "",
+      "feedback": {
+        "general": "",
+        "strengths": "",
+        "areasToImprove": "",
+        "nextSteps": "",
+        "isPublished": true,
+        "updatedAt": null
+      }
+    },
+    {
+      "id": 11,
+      "name": "Nhóm 11",
+      "status": "not_started",
+      "answers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "draftAnswers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "submittedAt": null,
+      "updatedAt": null,
+      "members": "",
+      "feedback": {
+        "general": "",
+        "strengths": "",
+        "areasToImprove": "",
+        "nextSteps": "",
+        "isPublished": true,
+        "updatedAt": null
+      }
+    },
+    {
+      "id": 12,
+      "name": "Nhóm 12",
+      "status": "not_started",
+      "answers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "draftAnswers": {
+        "q1": "",
+        "q2": "",
+        "q3": "",
+        "q4": ""
+      },
+      "submittedAt": null,
+      "updatedAt": null,
+      "members": "",
+      "feedback": {
+        "general": "",
+        "strengths": "",
+        "areasToImprove": "",
+        "nextSteps": "",
+        "isPublished": true,
+        "updatedAt": null
+      }
+    }
+  ],
+  "updatedAt": "2026-10-27T01:58:09.797Z"
+}

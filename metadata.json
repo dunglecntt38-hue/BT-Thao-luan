@@ -1,0 +1,6 @@
+{
+  "name": "Phòng Thảo Luận Số – Tin Học 10",
+  "description": "Hệ thống tổ chức thảo luận nhóm trực tuyến theo thời gian thực môn Tin học 10 THPT Đinh Tiên Hoàng - GV Lê Thị Dung",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
